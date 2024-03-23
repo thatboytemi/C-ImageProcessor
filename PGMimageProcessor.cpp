@@ -49,114 +49,128 @@ template <typename T> PGMimageProcessor<T>::PGMimageProcessor(std::string filena
 //No implementation needed since auto vars are used
 template <typename T> PGMimageProcessor<T>::~PGMimageProcessor() = default;
 //functions that enable me to get the intensity of current pixel (during iteration over image)
-// unsigned char getIntensity(Colour & colour){
-//     return 0.299*colour.pixels[0] + 0.587*colour.pixels[1] +0.114*colour.pixels[2];
-// }
-// unsigned char getIntensity(Gray gray){
-//     return gray;
-// }
+unsigned char getIntensity(Colour & colour){
+    return 0.299*colour.pixels[0] + 0.587*colour.pixels[1] +0.114*colour.pixels[2];
+}
+unsigned char getIntensity(Gray gray){
+    return gray;
+}
 
-// void setColour(Colour & colour, unsigned char newColour){
-//     colour.pixels[0]=newColour;
-//     colour.pixels[1]=newColour;
-//     colour.pixels[2]=newColour;
-// }
-// void setColour(Gray & gray, unsigned char colour){
-//     gray=colour;
-// }
-// template<typename T> int PGMimageProcessor<T>::extractComponents(unsigned char threshold, int minValidSize){
-//     int offset = 1;
-//     if(typeid(T)==typeid(Colour)){
-//         offset =3;
-//     }
-//     T * image = readFile(filename,offset);
-//     int widthVal = imageWidth;
-//     int heightVal = imageHeight;
-//     int numEntries = widthVal * heightVal;
-//     //extracting components
-//     int tempCounter =0;
-//     std::vector<std::pair<int, int>> directions {{1,0}, {0,1}, {-1,0},{0,-1}};
-//     for (int i = 0; i < heightVal; i++){
-//         for (int j = 0; j < widthVal; j++){
-//             unsigned char intensity;
-//             intensity = getIntensity(image[(i*widthVal)+j]);
-//             if(intensity>=threshold){
-//                 std::unique_ptr<ConnectedComponent> pointer(new ConnectedComponent(identifier++)); 
-//                 pointer->addToCoordinates(std::pair{i,j});
-//                 std::queue<std::pair<int, int>> queue;
-//                 queue.push({i, j});
-//                 setColour(image[(i*widthVal)+j],0);
-//                 while(!queue.empty()){ //BFS
-//                     std::pair<int, int> pair = queue.front();
-//                     queue.pop();
-//                     for(std::pair<int, int> dir: directions){
-//                         int row = pair.first + dir.first;
-//                         int col = pair.second + dir.second;
-//                         intensity = getIntensity(image[(row*widthVal)+col]);
-//                         if((0<=row && row <heightVal && col>=0 && col <widthVal)&& intensity>=threshold){ //checking if pixel is within the bounds and above threshold
-//                             pointer->addToCoordinates(std::pair{row,col});
-//                             queue.push({row, col});
-//                             setColour(image[(row*widthVal)+col], 0);
-//                         }
-//                     }
-//                 }
-//                 tempCounter++;
-//                 if(pointer->getNumPixels()>=minValidSize){
-//                     components.push_back(std::move(pointer));
-//                 }
-//             }   
-//         }    
-//     }
-//     delete [] image;
-//     return components.size();
-// }
+void setColour(Colour & colour, unsigned char newColour){
+    colour.pixels[0]=newColour;
+    colour.pixels[1]=newColour;
+    colour.pixels[2]=newColour;
+}
+void setColour(Gray & gray, unsigned char colour){
+    gray=colour;
+}
+template<typename T> int PGMimageProcessor<T>::extractComponents(unsigned char threshold, int minValidSize){
+    int offset = 1;
+    if(typeid(T)==typeid(Colour)){
+        offset =3;
+    }
+    T * image = readFile(filename,offset);
+    int widthVal = imageWidth;
+    int heightVal = imageHeight;
+    int numEntries = widthVal * heightVal;
+    //to avoid revisting pixel in BFS, will have to set pixel value to zero. Thus if the threshold value is zero, have to handle this case separately.
+    if(threshold==0){
+        std::unique_ptr<ConnectedComponent> pointer(new ConnectedComponent(identifier++)); 
+        for (int i = 0; i < heightVal; i++){
+            for (int j = 0; j < widthVal; j++){
+                pointer->addToCoordinates(std::pair{i,j});
+            }
+        }
+        if(pointer->getNumPixels()>=minValidSize){
+            components.push_back(std::move(pointer));
+        }
+        return components.size();
+    }
 
-// template<typename T> bool PGMimageProcessor<T>::writeComponents(const std::string & outFileName){
-//     std::string extenstion = ".pgm";
-//     if(typeid(T)==typeid(Colour)){
-//         extenstion =".ppm";
-//     }
-//     std::string filename = outFileName+ extenstion;
-//     std::ofstream outputFile;
-//     outputFile.open(filename, std::ios::binary);
-//     if (!outputFile.is_open()) { 
-//         std::cout << "File open failed!";
-//         return false;
-//     }
-//     std::string filetype = "P5";
-//     if(typeid(T)==typeid(Colour)){
-//         filetype="P6";
-//     }
-//     outputFile << filetype <<  "\n" <<"#Generated by ANXTEM001" << "\n" << std::to_string(imageWidth) + " " + std::to_string(imageHeight) << "\n" << "255" <<"\n";
-//     int dimensions = imageWidth*imageHeight;
-//     T* outputImage = new T [dimensions];
-//     //iterate through all pixels in output image making all pixels initially black
-//     for (int i = 0; i < imageHeight; i++)
-//     {
-//         for (int j = 0; j < imageWidth; j++)
-//         {
-//             setColour(outputImage[(i*imageWidth)+j], 0);
-//         }
+    //extracting components
+    std::vector<std::pair<int, int>> directions {{1,0}, {0,1}, {-1,0},{0,-1}};
+    for (int i = 0; i < heightVal; i++){
+        for (int j = 0; j < widthVal; j++){
+            unsigned char intensity;
+            intensity = getIntensity(image[(i*widthVal)+j]);
+            if(intensity>=threshold){
+                std::unique_ptr<ConnectedComponent> pointer(new ConnectedComponent(identifier++)); 
+                pointer->addToCoordinates(std::pair{i,j});
+                std::queue<std::pair<int, int>> queue;  
+                queue.push({i, j});
+                setColour(image[(i*widthVal)+j],0);
+                while(!queue.empty()){ //BFS
+                    std::pair<int, int> pair = queue.front();      
+                    queue.pop();
+                    for(std::pair<int, int> dir: directions){
+                        int row = pair.first + dir.first;
+                        int col = pair.second + dir.second;
+                        if((0<=row && row <heightVal && col>=0 && col <widthVal)){ //checking if pixel is within the bounds of image
+                            intensity = getIntensity(image[(row*widthVal)+col]);
+                            if(intensity>=threshold){
+                                pointer->addToCoordinates(std::pair{row,col});
+                                queue.push({row, col});
+                                setColour(image[(row*widthVal)+col], 0);
+                            }
+                        }
+                    } 
+                }
+                if(pointer->getNumPixels()>=minValidSize){
+                    components.push_back(std::move(pointer));
+                }
+            }   
+        }    
+    }
+    delete [] image;
+    return components.size();
+}
+
+template<typename T> bool PGMimageProcessor<T>::writeComponents(const std::string & outFileName){
+    std::string extenstion = ".pgm";
+    if(typeid(T)==typeid(Colour)){
+        extenstion =".ppm";
+    }
+    std::string filename = outFileName+ extenstion;
+    std::ofstream outputFile;
+    outputFile.open(filename, std::ios::binary);
+    if (!outputFile.is_open()) { 
+        std::cout << "File open failed!";
+        return false;
+    }
+    std::string filetype = "P5";
+    if(typeid(T)==typeid(Colour)){
+        filetype="P6";
+    }
+    outputFile << filetype <<  "\n" <<"#Generated by ANXTEM001" << "\n" << std::to_string(imageWidth) + " " + std::to_string(imageHeight) << "\n" << "255" <<"\n";
+    int dimensions = imageWidth*imageHeight;
+    T* outputImage = new T [dimensions];
+    //iterate through all pixels in output image making all pixels initially black
+    for (int i = 0; i < imageHeight; i++)
+    {
+        for (int j = 0; j < imageWidth; j++)
+        {
+            setColour(outputImage[(i*imageWidth)+j], 0);
+        }
         
-//     }
-//     //overwrite black pixels to white if contained in a component
-//     //using iterators to iterate through all components and then iterate through all pixels in component to overwrite component pixels to white
-//     for (std::vector<std::unique_ptr<ConnectedComponent>>::const_iterator i = components.begin(); i!=components.end(); ++i)
-//     {
-//         for (std::vector<std::pair<int, int>>::const_iterator j = (*i)->begin(); j!=(*i)->end(); ++j)
-//         {
-//             setColour(outputImage[j->first*imageWidth+j->second],255);
-//         }
-//     }
-//     int offset =1;
-//     if(typeid(T)==typeid(Colour)){
-//         offset =3;
-//     }
-//     outputFile.write((char*) (outputImage), dimensions*offset);
-//     outputFile.close();
-//     delete [] outputImage;
-//     return true;
-// }
+    }
+    //overwrite black pixels to white if contained in a component
+    //using iterators to iterate through all components and then iterate through all pixels in component to overwrite component pixels to white
+    for (std::vector<std::unique_ptr<ConnectedComponent>>::const_iterator i = components.begin(); i!=components.end(); ++i)
+    {
+        for (std::vector<std::pair<int, int>>::const_iterator j = (*i)->begin(); j!=(*i)->end(); ++j)
+        {
+            setColour(outputImage[j->first*imageWidth+j->second],255);
+        }
+    }
+    int offset =1;
+    if(typeid(T)==typeid(Colour)){
+        offset =3;
+    }
+    outputFile.write((char*) (outputImage), dimensions*offset);
+    outputFile.close();
+    delete [] outputImage;
+    return true;
+}
 
 
 // template<> bool PGMimageProcessor<Gray>::writeBorder(const std::string & outFileName){
