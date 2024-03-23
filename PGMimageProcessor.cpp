@@ -5,50 +5,50 @@
 #include <queue>
 #include <limits.h>
 //Constructors
-// template <typename T> PGMimageProcessor<T>::PGMimageProcessor():filename("birds.pgm"){}
-// template <typename T> PGMimageProcessor<T>::PGMimageProcessor(const PGMimageProcessor<T> & other):identifier(other.identifier), imageWidth(other.imageWidth), imageHeight(other.imageHeight), filename(other.filename){
-//     components.clear();
-//     for(std::vector<std::unique_ptr<ConnectedComponent>>::const_iterator pointer = components.begin(); pointer!=components.end();++pointer){
-//         components.push_back(std::unique_ptr<ConnectedComponent>(new ConnectedComponent(**pointer)));
-//     }
-// }
-// template <typename T> PGMimageProcessor<T>::PGMimageProcessor(PGMimageProcessor<T> && other):identifier(other.identifier), imageWidth(other.imageWidth), imageHeight(other.imageHeight), filename(std::move(other.filename)), components(std::move(other.components)){
-//     //leaving other object in destructable state
-//     other.identifier = 0;
-//     other.imageHeight =0;
-//     other.imageWidth =0;
-// }
-// template <typename T> PGMimageProcessor<T> & PGMimageProcessor<T>::operator=(const PGMimageProcessor<T> & other){
-//     if (this!=&other){
-//         identifier = other.identifier;
-//         imageWidth = other.imageWidth;
-//         imageHeight = other.imageHeight;
-//         filename = other.filename;
-//         components.clear();
-//         for(std::vector<std::unique_ptr<ConnectedComponent>>::const_iterator pointer = components.begin(); pointer!=components.end();++pointer){ 
-//             components.push_back(std::unique_ptr<ConnectedComponent>(new ConnectedComponent(**pointer)));
-//         }
-//     }
+template <typename T> PGMimageProcessor<T>::PGMimageProcessor():filename("birds.pgm"){}
+template <typename T> PGMimageProcessor<T>::PGMimageProcessor(const PGMimageProcessor<T> & other):identifier(other.identifier), imageWidth(other.imageWidth), imageHeight(other.imageHeight), filename(other.filename){
+    components.clear();
+    for(std::vector<std::unique_ptr<ConnectedComponent>>::const_iterator pointer = components.begin(); pointer!=components.end();++pointer){
+        components.push_back(std::unique_ptr<ConnectedComponent>(new ConnectedComponent(**pointer)));
+    }
+}
+template <typename T> PGMimageProcessor<T>::PGMimageProcessor(PGMimageProcessor<T> && other):identifier(other.identifier), imageWidth(other.imageWidth), imageHeight(other.imageHeight), filename(std::move(other.filename)), components(std::move(other.components)){
+    //leaving other object in destructable state
+    other.identifier = 0;
+    other.imageHeight =0;
+    other.imageWidth =0;
+}
+template <typename T> PGMimageProcessor<T> & PGMimageProcessor<T>::operator=(const PGMimageProcessor<T> & other){
+    if (this!=&other){
+        identifier = other.identifier;
+        imageWidth = other.imageWidth;
+        imageHeight = other.imageHeight;
+        filename = other.filename;
+        components.clear();
+        for(std::vector<std::unique_ptr<ConnectedComponent>>::const_iterator pointer = components.begin(); pointer!=components.end();++pointer){ 
+            components.push_back(std::unique_ptr<ConnectedComponent>(new ConnectedComponent(**pointer)));
+        }
+    }
     
-//     return (*this);
-// }
-// template <typename T> PGMimageProcessor<T> & PGMimageProcessor<T>::operator=(PGMimageProcessor<T> && other){
-//     if(this!=&other){
-//         identifier = other.identifier;
-//         imageWidth = other.imageWidth;
-//         imageHeight = other.imageHeight;
-//         filename = std::move(other.filename);
-//         components = std::move(other.components);
-//         other.identifier = 0;
-//         other.imageHeight =0;
-//         other.imageWidth =0;
-//     }
-//     return (*this);
-// }
-// template <typename T> PGMimageProcessor<T>::PGMimageProcessor(std::string filename):filename(filename){}
-// //No implementation needed since auto vars are used
-// template <typename T> PGMimageProcessor<T>::~PGMimageProcessor() = default;
-// //functions that enable me to get the intensity of current pixel (during iteration over image)
+    return (*this);
+}
+template <typename T> PGMimageProcessor<T> & PGMimageProcessor<T>::operator=(PGMimageProcessor<T> && other){
+    if(this!=&other){
+        identifier = other.identifier;
+        imageWidth = other.imageWidth;
+        imageHeight = other.imageHeight;
+        filename = std::move(other.filename);
+        components = std::move(other.components);
+        other.identifier = 0;
+        other.imageHeight =0;
+        other.imageWidth =0;
+    }
+    return (*this);
+}
+template <typename T> PGMimageProcessor<T>::PGMimageProcessor(std::string filename):filename(filename){}
+//No implementation needed since auto vars are used
+template <typename T> PGMimageProcessor<T>::~PGMimageProcessor() = default;
+//functions that enable me to get the intensity of current pixel (during iteration over image)
 // unsigned char getIntensity(Colour & colour){
 //     return 0.299*colour.pixels[0] + 0.587*colour.pixels[1] +0.114*colour.pixels[2];
 // }
@@ -268,35 +268,35 @@
 //     return true;
 // }
 
-template <typename T> T* PGMimageProcessor<T>::readFile(const std::string filename, int offset){
-    std::ifstream myfile;
-    std::string str;
-    std::string width;
-    std::string height;
-    myfile.open(filename, std::ios::binary);
-    if (!myfile.is_open()) { 
-        std::cout << "File open failed!";
-        return nullptr;
-    }
-    std::getline(myfile, str); //read first line 
-    while(getline(myfile, str)){ 
-        if(str[0]!='#'){
-            std::istringstream s(str);
-            s >> width >> height;
-            break;
-        }
-    }
-    getline(myfile, str); //read last line before binary block (255)
-    int widthVal = stoi(width);
-    int heightVal = stoi(height);
-    imageWidth = widthVal;
-    imageHeight = heightVal;
-    int numEntries = widthVal * heightVal;
-    T * image = new T[numEntries];
-    myfile.read((char*)(image),numEntries*offset);
-    myfile.close();
-    return image;
-}
+// template <typename T> T* PGMimageProcessor<T>::readFile(const std::string filename, int offset){
+//     std::ifstream myfile;
+//     std::string str;
+//     std::string width;
+//     std::string height;
+//     myfile.open(filename, std::ios::binary);
+//     if (!myfile.is_open()) { 
+//         std::cout << "File open failed!";
+//         return nullptr;
+//     }
+//     std::getline(myfile, str); //read first line 
+//     while(getline(myfile, str)){ 
+//         if(str[0]!='#'){
+//             std::istringstream s(str);
+//             s >> width >> height;
+//             break;
+//         }
+//     }
+//     getline(myfile, str); //read last line before binary block (255)
+//     int widthVal = stoi(width);
+//     int heightVal = stoi(height);
+//     imageWidth = widthVal;
+//     imageHeight = heightVal;
+//     int numEntries = widthVal * heightVal;
+//     T * image = new T[numEntries];
+//     myfile.read((char*)(image),numEntries*offset);
+//     myfile.close();
+//     return image;
+// }
 
 // template<typename T>  int PGMimageProcessor<T>::getLargestSize(void) const{
 //     int max =0;
