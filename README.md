@@ -1,4 +1,4 @@
-# C++ Assignment 3
+# C++ Image Processor
 
 ## Author: Temi Aina
 
