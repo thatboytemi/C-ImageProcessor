@@ -1,4 +1,4 @@
-# C++ Image Processor
+# C++ Image Thresholder
 
 ## Author: Temi Aina
 
