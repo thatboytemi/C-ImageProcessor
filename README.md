@@ -1,4 +1,4 @@
-# C++ Image Thresholder
+# C++ Image Thresholding
 
 ## Author: Temi Aina
 
